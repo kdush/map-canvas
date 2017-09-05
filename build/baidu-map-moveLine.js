@@ -117,12 +117,14 @@
       markerRadius: 3,
       //线条宽度
       lineWidth: 1,
-      //移动点颜色
-      fillColor: '#fff',
+      //移动点颜色 攻击
+      attackColor: 'red',
+      //移动点颜色 访问
+      visitColor: 'green',
       //移动点阴影颜色
       shadowColor: '#fff',
       //线条颜色
-      colors: ['blue'],//, 'yellow', 'red', 'green', 'orange', 'white'],
+      colors: 'yellow',//, 'yellow', 'red', 'green', 'orange', 'white'],
       //移动点半径
       moveRadius: 2,
       //移动点阴影大小
@@ -134,7 +136,7 @@
       // 目标文字
       toShow: true,
       // 显示线条
-      lineShow: true
+      lineShow: false
     }
 
     //全局变量
@@ -182,6 +184,7 @@
       this.to = opts.to
       this.id = opts.id
       this.step = 0
+      this.type = opts.type
     }
 
     MarkLine.prototype.getPointList = function (from, to) {
@@ -235,12 +238,12 @@
       var len = points.length
       var ret = []
       var distance = 0
-      for (var i = 1; i < len; i++) {
+      for (let i = 1; i < len; i++) {
         distance += this.getDistance(points[i - 1], points[i]);
       }
       var segs = distance / 2
       segs = segs < len ? len : segs
-      for (var i = 0; i < segs; i++) {
+      for (let i = 0; i < segs; i++) {
         var pos = i / (segs - 1) * (isLoop ? len : len - 1);
         var idx = Math.floor(pos)
         var w = pos - idx
@@ -285,7 +288,6 @@
       context.beginPath()
       context.lineWidth = options.lineWidth
       context.strokeStyle = options.colors
-
       if (!options.lineType || options.lineType == 'solid') {
         context.moveTo(pointList[0][0], pointList[0][1])
         for (var i = 0; i < len; i++) {
@@ -304,9 +306,8 @@
 
     MarkLine.prototype.drawMoveCircle = function (context) {
       var pointList = this.path || this.getPointList(map.pointToPixel(this.from.location), map.pointToPixel(this.to.location))
-
       context.save()
-      context.fillStyle = options.fillColor
+      context.fillStyle = this.type === 1 ? options.attackColor : options.visitColor
       context.shadowColor = options.shadowColor
       context.shadowBlur = options.shadowBlur
       context.beginPath()
@@ -331,7 +332,6 @@
       addMarkLine()
 
       baseCtx.clearRect(0, 0, width, height)
-
       markLines.forEach(line => {
         that.options.textShow && line.drawMarker(baseCtx)
         that.options.lineShow && line.drawLinePath(baseCtx)
@@ -385,7 +385,7 @@
 
     var addMarkLine = function addMarkLine() {
       markLines = []
-      var dataset = options.data
+      // var dataset = options.data
       data.forEach((line, i) => {
         markLines.push(new MarkLine({
           id: i,
@@ -398,7 +398,8 @@
             city: line.to.city,
             location: new BMap.Point(line.to.lnglat[0], line.to.lnglat[1]),
             color: options.colors
-          })
+          }),
+          type: line.type
         }))
       })
     }
